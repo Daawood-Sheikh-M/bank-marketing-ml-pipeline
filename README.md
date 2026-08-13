@@ -1,3 +1,4 @@
+cat << 'EOF' > README.md
 # 🏦 Bank Marketing Term Deposit Classification Pipeline
 **Program:** M.Tech Data Science & Engineering | BITS Pilani  
 **Course:** Machine Learning Assignment 2  
@@ -7,6 +8,64 @@
 ## 📌 Project Overview
 This project delivers an end-to-end Machine Learning pipeline and interactive Streamlit web application that predicts whether a banking client will subscribe to a term deposit based on direct marketing campaign attributes. The system features dynamic data ingestion via `kagglehub`, defensive imputation, feature scaling, adaptive class balancing (SMOTE), multi-model benchmarking across 6 core evaluation metrics, and artifact serialization for real-time app inference.
 
+---
+
+## 🏗️ System Architecture & Data Flow
+The following flowchart illustrates the complete pipeline from data ingestion to the interactive Streamlit deployment. GitHub natively renders this Mermaid diagram.
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1f5fe', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#fff'}}}%%
+flowchart TD
+    Start([Kaggle API via kagglehub]) -->|Downloads| RawCSV[bank.csv]
+    
+    subgraph Preprocessing [Phase 1: Data Engineering Pipeline]
+        direction TB
+        RawCSV --> DropTarget[Separate Features & Target]
+        DropTarget --> Impute[Defensive Imputation <br/> Median / Most Frequent]
+        Impute --> Encode[Ordinal Encoding <br/> Categorical to Numeric]
+        Encode --> Split[[Stratified Split <br/> 80% Train / 20% Test]]
+    end
+    
+    subgraph PostSplit [Phase 2: Feature Engineering]
+        direction TB
+        Split -->|X_train, X_test| Scale[StandardScaler <br/> Normalization]
+        Scale -->|y_train| Check{Check Class <br/>Imbalance Ratio}
+        Check -->|< 0.35| DoSMOTE[Apply SMOTE Oversampling]
+        Check -->|>= 0.35| NoSMOTE[Preserve Natural Split]
+    end
+    
+    subgraph Modeling [Phase 3: Model Training & Serialization]
+        direction TB
+        DoSMOTE & NoSMOTE --> Train[Train 5 Classifiers]
+        Train --> Compare[Evaluate Metrics <br/> ACC, AUC, F1, MCC]
+        Compare --> Serialize[Serialize Artifacts <br/> Pickle Dump]
+        Serialize -->|Exports to /models| pklPreprocessor[preprocessor.pkl]
+        Serialize -->|Exports to /models| pklScaler[scaler.pkl]
+        Serialize -->|Exports to /models| pklModels[5x Model .pkl files]
+    end
+    
+    subgraph Deployment [Phase 4: Streamlit Web Application]
+        direction TB
+        pklPreprocessor & pklScaler & pklModels --> App[app.py Dashboard]
+        App --> Tab1[Tab 1: Interactive EDA Charts]
+        App --> Tab2[Tab 2: Model Performance Metrics]
+        App --> Tab3[Tab 3: Real-Time / Batch Predictions]
+    end
+
+    classDef data fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#333;
+    classDef process fill:#e1f5fe,stroke:#0277bd,stroke-width:1px,color:#333;
+    classDef decision fill:#fff9c4,stroke:#fbc02d,stroke-width:1px,stroke-dasharray: 5 5,color:#333;
+    classDef serialize fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px,color:#333,stroke-dasharray: 5 5;
+    classDef app fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#333;
+    classDef startEnd fill:#cfd8dc,stroke:#37474f,stroke-width:2px,color:#333,rx:10,ry:10;
+
+    class Start startEnd;
+    class RawCSV data;
+    class DropTarget,Impute,Encode,Split,Scale,Train,Compare,Tab1,Tab2,Tab3 process;
+    class Check decision;
+    class DoSMOTE,NoSMOTE,Serialize serialize;
+    class pklPreprocessor,pklScaler,pklModels data;
+    class App app;
 ---
 
 ## 📏 Feature Scaling Rationale (`StandardScaler`)
@@ -98,4 +157,3 @@ ML-Assignment2/
     ├── knn.pkl                # Trained KNN model
     ├── naive_bayes.pkl        # Trained Naive Bayes model
     └── random_forest.pkl      # Trained Random Forest model
-
