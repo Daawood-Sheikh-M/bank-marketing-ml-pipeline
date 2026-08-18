@@ -757,8 +757,8 @@ ML-Assignment2/
 ## 1. Clone the Repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd ML-Assignment2
+git clone https://github.com/Daawood-Sheikh-M/bank-marketing-ml-pipeline.git
+cd bank-marketing-ml-pipeline
 ```
 
 ## 2. Create Virtual Environment
